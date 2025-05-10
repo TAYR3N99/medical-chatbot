@@ -16,7 +16,7 @@ app = Flask(__name__)
 app.secret_key = secrets.token_hex(16)  # Generate a random secret key
 
 # API key configuration
-OPENAI_API_KEY = "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"
+OPENAI_API_KEY = "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"
 os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
 
 # Database setup
@@ -86,16 +86,10 @@ def login_required(f):
 # Connect to Meta Llama 3.3 70B Instruct via OpenRouter
 llm = ChatOpenAI(
     temperature=0.4, 
-    max_tokens=500, 
+    max_tokens=1000, 
     model_name="meta-llama/llama-3.3-70b-instruct",
     openai_api_base="https://openrouter.ai/api/v1",
-    openai_api_key=OPENAI_API_KEY,
-    model_kwargs={
-        "extra_headers": {
-            "HTTP-Referer": "https://mediconnect.app", 
-            "X-Title": "MediConnect",
-        }
-    }
+    openai_api_key=OPENAI_API_KEY
 )
 
 # Create prompt for the LLM
@@ -311,13 +305,22 @@ def chat_page():
 @app.route("/get", methods=["GET", "POST"])
 @login_required
 def chat():
-    user_input = request.form["msg"]
-    
-    # Instead of using RAG, just use the LLM directly
-    response = llm.invoke(prompt.format(input=user_input))
-    
-    # The response is now directly from the LLM, not from the RAG chain
-    return response.content
+    try:
+        user_input = request.form["msg"]
+        
+        # Make sure the user input is valid
+        if not user_input or user_input.strip() == "":
+            return "Veuillez poser une question médicale. 🩺"
+        
+        # Use the LLM directly with an empty context
+        response = llm.invoke(prompt.format(input=user_input, context=""))
+        
+        # The response is now directly from Llama 3.3 70B model
+        return response.content
+    except Exception as e:
+        # Handle any errors
+        print(f"Error in chat: {str(e)}")
+        return "Désolé, une erreur s'est produite lors du traitement de votre demande. Veuillez réessayer. ⚠️"
 
 # Error handlers
 @app.errorhandler(404)
