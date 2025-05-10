@@ -50,8 +50,6 @@ cd mediconnect
 python -m venv env
 # Windows
 .\env\Scripts\activate
-# Linux/Mac
-source env/bin/activate
 ```
 
 3. Install the dependencies:
