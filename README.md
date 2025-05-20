@@ -1,126 +1,149 @@
-# MediConnect - AI-Powered Medical Chatbot
+# MediConnect - Plateforme Médicale
 
-MediConnect is a modern medical platform that connects patients with healthcare professionals. This application features an AI-powered medical chatbot using Meta's Llama 3.3 70B model via OpenRouter.
+Une plateforme médicale complète permettant la communication entre patients et médecins, avec des fonctionnalités de chat, rendez-vous, prescriptions et assistance médicale IA.
 
-## Features
+## 🌟 Fonctionnalités
 
-### Authentication and User Management
-- Secure authentication system with password hashing
-- Differentiated registration for doctors and patients
-- User profile management
-- Password recovery system
+- **Authentification**
+  - Inscription/Connexion pour patients et médecins
+  - Récupération de mot de passe
+  - Profils personnalisés
 
-### User Interface
-- Modern, responsive design
-- Dark/light mode support
-- Role-based dashboards (doctor/patient)
-- Intuitive medical chat interface
+- **Tableau de bord**
+  - Vue spécifique pour patients et médecins
+  - Statistiques et notifications
+  - Rendez-vous à venir
 
-### Medical AI Features
-- Medical AI chatbot based on advanced LLM models
-- Direct interaction with Llama 3.3 70B for medical queries
-- User-friendly chat interface
+- **Gestion des rendez-vous**
+  - Prise de rendez-vous en ligne
+  - Confirmation par email
+  - Rappels automatiques
 
-## Technologies Used
+- **Prescriptions**
+  - Création de prescriptions par les médecins
+  - Demandes de renouvellement
+  - Historique des prescriptions
 
-- **Backend**: Flask (Python)
-- **Database**: SQLite
-- **Frontend**: HTML, CSS, JavaScript
-- **Authentication**: Werkzeug Security
-- **AI Integration**: LangChain, OpenRouter
-- **LLM Model**: Meta Llama 3.3 70B via OpenRouter
+- **Communication**
+  - Chat en temps réel entre patients et médecins
+  - Notifications de nouveaux messages
+  - Assistant médical IA
 
-## Installation
+- **Évaluations**
+  - Système de notation des médecins
+  - Commentaires et retours
+  - Statistiques de satisfaction
 
-### Prerequisites
-- Python 3.10+
-- pip
-- OpenRouter API key
+## 🚀 Installation
 
-### Installation Steps
-
-1. Clone the repository:
+1. Cloner le repository
 ```bash
-git clone https://github.com/your-username/mediconnect.git
-cd mediconnect
+git clone https://github.com/votre-username/medical-chatbot-1.git
+cd medical-chatbot-1
 ```
 
-2. Create and activate a virtual environment:
+2. Créer un environnement virtuel
 ```bash
-python -m venv env
-# Windows
-.\env\Scripts\activate
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+venv\Scripts\activate     # Windows
 ```
 
-3. Install the dependencies:
+3. Installer les dépendances
 ```bash
 pip install -r requirements.txt
 ```
 
-4. Configure API keys in app.py:
-```python
-# API key configuration
-OPENAI_API_KEY = "your-openrouter-api-key"
-os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
+4. Configurer les variables d'environnement
+```bash
+# Créer un fichier .env
+OPENAI_API_KEY=votre_clé_api
+SMTP_USERNAME=votre_email
+SMTP_PASSWORD=votre_mot_de_passe
 ```
 
-## Running the Application
+5. Initialiser la base de données
+```bash
+python init_db.py
+```
 
-To run the application:
+6. Lancer l'application
 ```bash
 python app.py
 ```
 
-The application will be accessible at: `http://localhost:8080`
+## 💻 Technologies utilisées
 
-## Project Structure
+- **Backend**
+  - Flask
+  - SQLite
+  - Flask-SocketIO
+  - LangChain
+  - OpenAI API
+
+- **Frontend**
+  - HTML/CSS
+  - Tailwind CSS
+  - JavaScript
+  - Socket.IO
+
+- **Autres**
+  - APScheduler pour les tâches planifiées
+  - SMTP pour les emails
+  - WebSocket pour le chat en temps réel
+
+## 📝 Structure du projet
 
 ```
-mediconnect/
-├── Data/                   # Medical data files
-├── env/                    # Virtual environment
-├── src/                    # Source code
-│   ├── helper.py           # Helper functions
-│   ├── prompt.py           # Chatbot prompt templates
-│   └── __init__.py         # Python package marker
-├── static/                 # Static files (CSS, JS, images)
-├── templates/              # HTML templates
-│   ├── auth/               # Authentication templates
-│   ├── doctor/             # Doctor dashboard templates
-│   ├── errors/             # Error page templates
-│   ├── patient/            # Patient dashboard templates
-│   ├── about.html          # About page
-│   ├── base.html           # Base template
-│   ├── base_auth.html      # Authentication base template
-│   ├── chat.html           # Chat interface
-│   ├── contact.html        # Contact page
-│   ├── index.html          # Home page
-│   └── services.html       # Services page
-├── .gitignore              # Git ignore file
-├── app.py                  # Main application file
-├── LICENSE                 # License file
-├── mediconnect.db          # SQLite database
-└── requirements.txt        # Python dependencies
+medical-chatbot-1/
+├── app.py                 # Application principale
+├── requirements.txt       # Dépendances
+├── .env                  # Variables d'environnement
+├── static/              # Fichiers statiques
+├── templates/           # Templates HTML
+│   ├── auth/           # Pages d'authentification
+│   ├── doctor/         # Interface médecin
+│   ├── patient/        # Interface patient
+│   └── chat/           # Interface de chat
+└── uploads/            # Fichiers uploadés
 ```
 
-## Usage Guide
+## 🔒 Sécurité
 
-1. **Registration**: Create an account by choosing your role (patient or doctor)
-2. **Login**: Sign in with your credentials
-3. **Dashboard**: Access your personalized dashboard based on your role
-4. **Medical Chat**: Use the AI medical assistant to get information about health or medical questions
+- Authentification sécurisée
+- Protection CSRF
+- Validation des entrées
+- Hachage des mots de passe
+- Sessions sécurisées
 
-## Security
+## 📧 Configuration Email
 
-- Passwords hashed with Werkzeug Security
-- CSRF protection
-- Authentication required for protected routes
-- Password recovery tokens with expiration
+Pour activer les notifications par email, configurez les variables SMTP dans le fichier `.env`:
 
-## License
+```
+SMTP_SERVER=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USERNAME=votre_email@gmail.com
+SMTP_PASSWORD=votre_mot_de_passe_application
+```
 
-This project is licensed under the MIT License. See the `LICENSE` file for details.
+## 🤖 Assistant Médical IA
 
-## Contributors
+L'assistant utilise l'API OpenRouter avec le modèle Llama 3.3 70B pour fournir:
+- Informations médicales générales
+- Recommandations de médicaments
+- Conseils de santé
+- Rappels de consulter un médecin
 
-- Your contributions are welcome
+## 📄 Licence
+
+Ce projet est sous licence MIT. Voir le fichier `LICENSE` pour plus de détails.
+
+## 👥 Contribution
+
+Les contributions sont les bienvenues! N'hésitez pas à:
+1. Fork le projet
+2. Créer une branche (`git checkout -b feature/AmazingFeature`)
+3. Commit vos changements (`git commit -m 'Add some AmazingFeature'`)
+4. Push vers la branche (`git push origin feature/AmazingFeature`)
+5. Ouvrir une Pull Request

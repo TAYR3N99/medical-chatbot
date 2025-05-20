@@ -26,7 +26,7 @@ app.secret_key = secrets.token_hex(16)  # Generate a random secret key
 socketio = SocketIO(app)
 
 # API key configuration
-OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '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')
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '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')
 os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
 
 # Configure upload folder
@@ -811,10 +811,20 @@ def new_prescription():
         return redirect(url_for('doctor_dashboard'))
     
     conn = get_db_connection()
-    patients = conn.execute('SELECT * FROM users WHERE role = ?', ('patient',)).fetchall()
+    # Get patient_id from query parameters if provided
+    patient_id = request.args.get('patient_id')
+    
+    if patient_id:
+        # Get specific patient
+        patient = conn.execute('SELECT * FROM users WHERE id = ? AND role = ?', (patient_id, 'patient')).fetchone()
+        patients = [patient] if patient else []
+    else:
+        # Get all patients
+        patients = conn.execute('SELECT * FROM users WHERE role = ?', ('patient',)).fetchall()
+    
     conn.close()
     
-    return render_template('doctor/new_prescription.html', patients=patients)
+    return render_template('doctor/new_prescription.html', patients=patients, selected_patient_id=patient_id)
 
 @app.route("/doctor/add-record", methods=["GET", "POST"])
 @login_required
@@ -1221,40 +1231,33 @@ def chatbot_response():
         data = request.get_json()
         user_message = data.get('message')
         
-        # Initialize the chat model with OpenRouter configuration
         chat = ChatOpenAI(
             model="meta-llama/llama-3.3-70b-instruct",
             temperature=0.7,
             openai_api_base="https://openrouter.ai/api/v1",
-            openai_api_key=OPENAI_API_KEY
+            openai_api_key=OPENAI_API_KEY,
+            default_headers={
+                "HTTP-Referer": "http://192.168.11.102:8080",
+                "X-Title": "MediConnect Chatbot",
+                "Authorization": f"Bearer {OPENAI_API_KEY}"
+            }
         )
         
-        # Create the system message with medical context
-        system_message = SystemMessage(content="""You are a medical assistant chatbot. Follow these guidelines:
-        1. For medication requests (e.g., "donne moi medicament du fievre"), provide:
-           - Common over-the-counter medications
-           - Dosage recommendations
-           - Important warnings
-           - Always remind to consult a doctor
-        2. Be concise and clear in French
-        3. Format responses with bullet points for better readability
-        4. Always include a disclaimer about consulting a healthcare professional
-        5. If unsure, recommend seeing a doctor""")
+        messages = [
+            SystemMessage(content="You are a medical assistant chatbot. Provide helpful information in French."),
+            HumanMessage(content=user_message)
+        ]
         
-        # Create the human message
-        human_message = HumanMessage(content=user_message)
+        try:
+            response = chat.invoke(messages)
+            return jsonify({'response': response.content})
+        except Exception as api_error:
+            print(f"API Error: {str(api_error)}")
+            return jsonify({'error': 'Erreur de communication avec l\'assistant. Veuillez réessayer.'}), 500
         
-        # Get the response
-        response = chat.invoke([system_message, human_message])
-        
-        return jsonify({
-            'response': response.content
-        })
     except Exception as e:
-        print(f"Chatbot error: {str(e)}")  # Add logging
-        return jsonify({
-            'error': str(e)
-        }), 500
+        print(f"Chatbot error: {str(e)}")
+        return jsonify({'error': 'Désolé, une erreur est survenue. Veuillez réessayer.'}), 500
 
 # Run the Flask app
 if __name__ == "__main__":
