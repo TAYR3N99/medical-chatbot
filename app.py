@@ -1235,12 +1235,7 @@ def chatbot_response():
             model="meta-llama/llama-3.3-70b-instruct",
             temperature=0.7,
             openai_api_base="https://openrouter.ai/api/v1",
-            openai_api_key=OPENAI_API_KEY,
-            default_headers={
-                "HTTP-Referer": "http://192.168.11.102:8080",
-                "X-Title": "MediConnect Chatbot",
-                "Authorization": f"Bearer {OPENAI_API_KEY}"
-            }
+            openai_api_key=OPENAI_API_KEY
         )
         
         messages = [

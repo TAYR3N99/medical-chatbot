@@ -1,13 +1,15 @@
 flask==2.3.3
-openai==1.12.0
+openai==1.79.0
 python-dotenv==1.0.0
-langchain==0.1.0
-langchain_community==0.0.13
-langchain_openai==0.0.5
+langchain==0.3.25
+langchain_openai==0.3.17
 flask-wtf==1.2.1
 email-validator==2.1.0
 flask-mail==0.9.1
 requests==2.31.0
 werkzeug==2.3.7
+apscheduler==3.11.0
+tzlocal==5.3.1
+tiktoken==0.9.0
 
 
