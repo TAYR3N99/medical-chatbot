@@ -50,68 +50,77 @@
 </head>
 <body class="bg-gray-50 dark:bg-gray-900">
     <!-- Navigation -->
-    <header>
-        <nav class="bg-white border-gray-200 px-4 py-2.5 dark:bg-gray-800 fixed w-full z-50 top-0 left-0 border-b border-gray-200 dark:border-gray-700">
-            <div class="flex flex-wrap justify-between items-center mx-auto max-w-screen-xl">
-                <a href="{{ url_for('index') }}" class="flex items-center">
-                    <img src="{{ url_for('static', filename='images/logo.svg') }}" class="mr-3 h-8" alt="MediConnect Logo" />
-                    <span class="self-center text-2xl font-semibold whitespace-nowrap text-primary-600">Medi<span class="text-gray-900 dark:text-white">Connect</span></span>
-                </a>
-                <div class="flex items-center lg:order-2">
-                    {% if 'user_id' in session %}
-                        <button id="dropdownNavbarLink" data-dropdown-toggle="userDropdown" class="flex items-center justify-between w-full py-2 pl-3 pr-4 text-gray-700 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-primary-600 md:p-0 md:w-auto dark:text-gray-400 dark:hover:text-white dark:focus:text-white dark:hover:bg-gray-700 md:dark:hover:bg-transparent">
-                            <span class="mr-2">{{ session.get('name', 'Utilisateur') }}</span>
-                            <svg class="w-5 h-5 ml-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                            </svg>
-                        </button>
-                        <!-- Dropdown menu -->
-                        <div id="userDropdown" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 dark:divide-gray-600">
-                            <div class="px-4 py-3 text-sm text-gray-900 dark:text-white">
-                                <div>{{ session.get('name', 'Utilisateur') }}</div>
-                                <div class="font-medium truncate">{{ session.get('role') == 'doctor' and 'Médecin' or 'Patient' }}</div>
-                            </div>
-                            <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownNavbarLink">
-                                <li>
-                                    <a href="{{ session.get('role') == 'doctor' and url_for('doctor_dashboard') or url_for('patient_dashboard') }}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Tableau de bord</a>
-                                </li>
-                                <li>
-                                    <a href="{{ url_for('chat_page') }}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Chat médical</a>
-                                </li>
-                            </ul>
-                            <div class="py-1">
-                                <a href="{{ url_for('logout') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">Déconnexion</a>
-                            </div>
+    <nav class="bg-white dark:bg-gray-800 shadow">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex">
+                    <div class="flex-shrink-0 flex items-center">
+                        <a href="{{ url_for('index') }}" class="text-xl font-bold text-primary-600">MediConnect</a>
+                    </div>
+                    <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+                        {% if not session.get('user_id') %}
+                            <a href="{{ url_for('index') }}" class="border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 hover:text-gray-700 dark:hover:text-white inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                                Accueil
+                            </a>
+                            <a href="{{ url_for('services') }}" class="border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 hover:text-gray-700 dark:hover:text-white inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                                Services
+                            </a>
+                            <a href="{{ url_for('about') }}" class="border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 hover:text-gray-700 dark:hover:text-white inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                                À propos
+                            </a>
+                            <a href="{{ url_for('contact') }}" class="border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 hover:text-gray-700 dark:hover:text-white inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                                Contact
+                            </a>
+                        {% else %}
+                            {% if session.get('role') == 'doctor' %}
+                                <a href="{{ url_for('doctor_dashboard') }}" class="border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 hover:text-gray-700 dark:hover:text-white inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                                    Tableau de bord
+                                </a>
+                                <a href="{{ url_for('chat_list') }}" class="border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 hover:text-gray-700 dark:hover:text-white inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                                    Chat médical
+                                </a>
+                            {% else %}
+                                <a href="{{ url_for('patient_dashboard') }}" class="border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 hover:text-gray-700 dark:hover:text-white inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                                    Tableau de bord
+                                </a>
+                                <a href="{{ url_for('chat_list') }}" class="border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 hover:text-gray-700 dark:hover:text-white inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                                    Chat médical
+                                </a>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="hidden sm:ml-6 sm:flex sm:items-center">
+                    {% if session.get('user_id') %}
+                        <div class="flex items-center space-x-4">
+                            <a href="{{ url_for('chat_list') }}" class="text-gray-300 hover:text-white">
+                                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                </svg>
+                            </a>
+                            <a href="{{ url_for('chatbot') }}" class="text-gray-300 hover:text-white">
+                                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                                </svg>
+                            </a>
+                            <span class="text-gray-300">|</span>
+                            <span class="text-gray-300">Bienvenue, {{ session.get('name', '') }}</span>
+                            <a href="{{ url_for('logout') }}" class="text-gray-300 hover:text-white">Déconnexion</a>
                         </div>
                     {% else %}
-                        <a href="{{ url_for('login') }}" class="text-gray-800 dark:text-white hover:bg-gray-50 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-4 py-2 lg:py-2.5 mr-2 dark:hover:bg-gray-700 focus:outline-none dark:focus:ring-gray-800">Connexion</a>
-                        <a href="{{ url_for('register') }}" class="text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-4 py-2 lg:py-2.5 mr-2 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800">Inscription</a>
+                        <div class="flex items-center space-x-4">
+                            <a href="{{ url_for('login') }}" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
+                                Se connecter
+                            </a>
+                            <a href="{{ url_for('register') }}" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
+                                Créer un compte
+                            </a>
+                        </div>
                     {% endif %}
-                    <button data-collapse-toggle="mobile-menu-2" type="button" class="inline-flex items-center p-2 ml-1 text-sm text-gray-500 rounded-lg lg:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600" aria-controls="mobile-menu-2" aria-expanded="false">
-                        <span class="sr-only">Ouvrir le menu</span>
-                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path></svg>
-                        <svg class="hidden w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
-                    </button>
-                </div>
-                <div class="hidden justify-between items-center w-full lg:flex lg:w-auto lg:order-1" id="mobile-menu-2">
-                    <ul class="flex flex-col mt-4 font-medium lg:flex-row lg:space-x-8 lg:mt-0">
-                        <li>
-                            <a href="{{ url_for('index') }}" class="block py-2 pr-4 pl-3 text-gray-700 border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 lg:hover:text-primary-600 lg:p-0 dark:text-gray-400 lg:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent dark:border-gray-700" aria-current="page">Accueil</a>
-                        </li>
-                        <li>
-                            <a href="{{ url_for('services') }}" class="block py-2 pr-4 pl-3 text-gray-700 border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 lg:hover:text-primary-600 lg:p-0 dark:text-gray-400 lg:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent dark:border-gray-700">Nos services</a>
-                        </li>
-                        <li>
-                            <a href="{{ url_for('about') }}" class="block py-2 pr-4 pl-3 text-gray-700 border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 lg:hover:text-primary-600 lg:p-0 dark:text-gray-400 lg:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent dark:border-gray-700">À propos</a>
-                        </li>
-                        <li>
-                            <a href="{{ url_for('contact') }}" class="block py-2 pr-4 pl-3 text-gray-700 border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 lg:hover:text-primary-600 lg:p-0 dark:text-gray-400 lg:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white lg:dark:hover:bg-transparent dark:border-gray-700">Contact</a>
-                        </li>
-                    </ul>
                 </div>
             </div>
-        </nav>
-    </header>
+        </div>
+    </nav>
     
     <!-- Main Content with padding for fixed navbar -->
     <main class="pt-24">
