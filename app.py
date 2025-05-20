@@ -177,20 +177,6 @@ def init_db():
     )
     ''')
     
-    # Create doctor_ratings table
-    cursor.execute('''
-    CREATE TABLE IF NOT EXISTS doctor_ratings (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        doctor_id INTEGER NOT NULL,
-        patient_id INTEGER NOT NULL,
-        rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
-        comment TEXT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (doctor_id) REFERENCES users (id),
-        FOREIGN KEY (patient_id) REFERENCES users (id)
-    )
-    ''')
-    
     conn.commit()
     conn.close()
 
@@ -911,6 +897,36 @@ def patient_prescriptions():
     conn.close()
     return render_template('patient/prescriptions.html', prescriptions=prescriptions)
 
+@app.route("/patient/prescription/<int:prescription_id>")
+@login_required
+def view_prescription(prescription_id):
+    if session.get('role') != 'patient':
+        flash("Accès non autorisé.", "error")
+        return redirect(url_for('index'))
+    
+    conn = get_db_connection()
+    prescription = conn.execute('''
+        SELECT p.*, 
+               d.first_name as doctor_first_name, d.last_name as doctor_last_name,
+               dp.speciality as doctor_speciality
+        FROM prescriptions p
+        JOIN users d ON p.doctor_id = d.id
+        JOIN doctor_profiles dp ON d.id = dp.user_id
+        WHERE p.id = ? AND p.patient_id = ?
+    ''', (prescription_id, session['user_id'])).fetchone()
+    
+    if not prescription:
+        flash("Ordonnance non trouvée.", "error")
+        return redirect(url_for('patient_prescriptions'))
+    
+    # Parse medications JSON
+    medications = json.loads(prescription['medications'])
+    
+    conn.close()
+    return render_template('patient/view_prescription.html', 
+                         prescription=prescription,
+                         medications=medications)
+
 @app.route("/patient/messages")
 @login_required
 def patient_messages():
@@ -1042,13 +1058,20 @@ def request_prescription_refill(prescription_id):
     
     conn = get_db_connection()
     prescription = conn.execute('''
-        SELECT * FROM prescriptions WHERE id = ? AND patient_id = ?
+        SELECT p.*, 
+               d.email as doctor_email, d.first_name as doctor_first_name, d.last_name as doctor_last_name,
+               pt.first_name as patient_first_name, pt.last_name as patient_last_name
+        FROM prescriptions p
+        JOIN users d ON p.doctor_id = d.id
+        JOIN users pt ON p.patient_id = pt.id
+        WHERE p.id = ? AND p.patient_id = ?
     ''', (prescription_id, session['user_id'])).fetchone()
     
     if not prescription:
         flash("Ordonnance non trouvée.", "error")
         return redirect(url_for('patient_prescriptions'))
     
+    # Create refill request
     conn.execute('''
         INSERT INTO prescription_refills (prescription_id, patient_id, doctor_id, notes)
         VALUES (?, ?, ?, ?)
@@ -1056,22 +1079,19 @@ def request_prescription_refill(prescription_id):
     conn.commit()
     
     # Send email notification to doctor
-    doctor = conn.execute('SELECT email, first_name, last_name FROM users WHERE id = ?', 
-                         (prescription['doctor_id'],)).fetchone()
-    patient = conn.execute('SELECT first_name, last_name FROM users WHERE id = ?', 
-                          (session['user_id'],)).fetchone()
-    
     email_body = f"""
     <h2>Demande de renouvellement d'ordonnance</h2>
-    <p>Bonjour Dr. {doctor['last_name']},</p>
-    <p>{patient['first_name']} {patient['last_name']} a demandé le renouvellement d'une ordonnance.</p>
-    <p>Notes: {notes}</p>
+    <p>Bonjour Dr. {prescription['doctor_last_name']},</p>
+    <p>{prescription['patient_first_name']} {prescription['patient_last_name']} a demandé le renouvellement d'une ordonnance.</p>
+    <p>Date de l'ordonnance originale: {prescription['date']}</p>
+    <p>Médicaments: {prescription['medications']}</p>
+    <p>Notes du patient: {notes}</p>
     <p>Veuillez vous connecter à votre espace pour traiter cette demande.</p>
     """
-    send_email(doctor['email'], "Demande de renouvellement d'ordonnance", email_body)
+    send_email(prescription['doctor_email'], "Demande de renouvellement d'ordonnance", email_body)
     
     conn.close()
-    flash("Votre demande de renouvellement a été envoyée.", "success")
+    flash("Votre demande de renouvellement a été envoyée au médecin.", "success")
     return redirect(url_for('patient_prescriptions'))
 
 @app.route("/doctor/prescription-refills")
@@ -1138,87 +1158,6 @@ def respond_to_refill_request(refill_id):
     flash("Réponse envoyée avec succès.", "success")
     return redirect(url_for('prescription_refills'))
 
-# Doctor rating routes
-@app.route("/patient/doctor/<int:doctor_id>/rate", methods=["POST"])
-@login_required
-def rate_doctor(doctor_id):
-    if session.get('role') != 'patient':
-        flash("Accès non autorisé.", "error")
-        return redirect(url_for('index'))
-    
-    rating = request.form.get('rating')
-    comment = request.form.get('comment', '')
-    
-    if not rating or not rating.isdigit() or int(rating) < 1 or int(rating) > 5:
-        flash("Note invalide.", "error")
-        return redirect(url_for('patient_doctors'))
-    
-    conn = get_db_connection()
-    # Check if patient has had appointments with this doctor
-    has_appointments = conn.execute('''
-        SELECT COUNT(*) as count 
-        FROM appointments 
-        WHERE patient_id = ? AND doctor_id = ? AND status = 'completed'
-    ''', (session['user_id'], doctor_id)).fetchone()['count']
-    
-    if not has_appointments:
-        flash("Vous ne pouvez noter que les médecins que vous avez consultés.", "error")
-        return redirect(url_for('patient_doctors'))
-    
-    # Check if patient has already rated this doctor
-    existing_rating = conn.execute('''
-        SELECT id FROM doctor_ratings 
-        WHERE patient_id = ? AND doctor_id = ?
-    ''', (session['user_id'], doctor_id)).fetchone()
-    
-    if existing_rating:
-        conn.execute('''
-            UPDATE doctor_ratings 
-            SET rating = ?, comment = ?, created_at = CURRENT_TIMESTAMP
-            WHERE id = ?
-        ''', (rating, comment, existing_rating['id']))
-    else:
-        conn.execute('''
-            INSERT INTO doctor_ratings (doctor_id, patient_id, rating, comment)
-            VALUES (?, ?, ?, ?)
-        ''', (doctor_id, session['user_id'], rating, comment))
-    
-    conn.commit()
-    conn.close()
-    
-    flash("Merci pour votre évaluation.", "success")
-    return redirect(url_for('patient_doctors'))
-
-@app.route("/doctor/ratings")
-@login_required
-def doctor_ratings():
-    if session.get('role') != 'doctor':
-        flash("Accès non autorisé.", "error")
-        return redirect(url_for('index'))
-    
-    conn = get_db_connection()
-    ratings = conn.execute('''
-        SELECT r.*, 
-               p.first_name as patient_first_name, p.last_name as patient_last_name
-        FROM doctor_ratings r
-        JOIN users p ON r.patient_id = p.id
-        WHERE r.doctor_id = ?
-        ORDER BY r.created_at DESC
-    ''', (session['user_id'],)).fetchall()
-    
-    # Calculate average rating
-    avg_rating = conn.execute('''
-        SELECT AVG(rating) as avg_rating 
-        FROM doctor_ratings 
-        WHERE doctor_id = ?
-    ''', (session['user_id'],)).fetchone()['avg_rating']
-    
-    conn.close()
-    
-    return render_template('doctor/ratings.html', 
-                         ratings=ratings,
-                         avg_rating=round(avg_rating, 1) if avg_rating else 0)
-
 @app.route('/chatbot')
 @login_required
 def chatbot():
@@ -1253,6 +1192,27 @@ def chatbot_response():
     except Exception as e:
         print(f"Chatbot error: {str(e)}")
         return jsonify({'error': 'Désolé, une erreur est survenue. Veuillez réessayer.'}), 500
+
+@app.route("/doctor/patients")
+@login_required
+def doctor_patients():
+    if session.get('role') != 'doctor':
+        flash("Accès non autorisé.", "error")
+        return redirect(url_for('index'))
+    
+    conn = get_db_connection()
+    patients = conn.execute('''
+        SELECT DISTINCT u.*, 
+               (SELECT COUNT(*) FROM appointments WHERE patient_id = u.id AND doctor_id = ?) as appointment_count,
+               (SELECT COUNT(*) FROM prescriptions WHERE patient_id = u.id AND doctor_id = ?) as prescription_count
+        FROM users u
+        JOIN appointments a ON u.id = a.patient_id
+        WHERE a.doctor_id = ? AND u.role = 'patient'
+        ORDER BY u.first_name, u.last_name
+    ''', (session['user_id'], session['user_id'], session['user_id'])).fetchall()
+    conn.close()
+    
+    return render_template('doctor/patients.html', patients=patients)
 
 # Run the Flask app
 if __name__ == "__main__":

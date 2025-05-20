@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Ordonnance - MediConnect{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
+    <div class="max-w-4xl mx-auto px-4">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Ordonnance</h1>
+                <a href="{{ url_for('patient_prescriptions') }}" class="text-primary-600 hover:text-primary-700 dark:text-primary-400">
+                    <i class="fas fa-arrow-left mr-2"></i>Retour
+                </a>
+            </div>
+
+            <div class="space-y-6">
+                <!-- Doctor Info -->
+                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                    <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Médecin</h2>
+                    <p class="text-gray-600 dark:text-gray-300">
+                        Dr. {{ prescription.doctor_first_name }} {{ prescription.doctor_last_name }}
+                        <span class="text-gray-500 dark:text-gray-400">({{ prescription.doctor_speciality }})</span>
+                    </p>
+                </div>
+
+                <!-- Date -->
+                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                    <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Date</h2>
+                    <p class="text-gray-600 dark:text-gray-300">{{ prescription.date }}</p>
+                </div>
+
+                <!-- Medications -->
+                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                    <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Médicaments</h2>
+                    <ul class="space-y-2">
+                        {% for medication in medications %}
+                        <li class="text-gray-600 dark:text-gray-300">{{ medication }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <!-- Notes -->
+                {% if prescription.notes %}
+                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                    <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Notes</h2>
+                    <p class="text-gray-600 dark:text-gray-300">{{ prescription.notes }}</p>
+                </div>
+                {% endif %}
+
+                <!-- Actions -->
+                <div class="flex justify-end space-x-4">
+                    <form action="{{ url_for('request_prescription_refill', prescription_id=prescription.id) }}" method="POST" class="inline">
+                        <button type="submit" 
+                                class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                            <i class="fas fa-redo mr-2"></i>Demander un renouvellement
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
