@@ -1214,6 +1214,32 @@ def doctor_patients():
     
     return render_template('doctor/patients.html', patients=patients)
 
+@app.route('/video_call/<int:user_id>', methods=['GET', 'POST'])
+@login_required
+def video_call(user_id):
+    conn = get_db_connection()
+    other_user = conn.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
+    conn.close()
+    if not other_user:
+        flash("Utilisateur non trouvé.", "error")
+        return redirect(url_for('chat_list'))
+    # Simulate payment process
+    flash('Payment successful! Video call initiated.', 'success')
+    return redirect(url_for('private_chat', user_id=user_id, call_type='video'))
+
+@app.route('/audio_call/<int:user_id>', methods=['GET', 'POST'])
+@login_required
+def audio_call(user_id):
+    conn = get_db_connection()
+    other_user = conn.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
+    conn.close()
+    if not other_user:
+        flash("Utilisateur non trouvé.", "error")
+        return redirect(url_for('chat_list'))
+    # Simulate payment process
+    flash('Payment successful! Audio call initiated.', 'success')
+    return redirect(url_for('private_chat', user_id=user_id, call_type='audio'))
+
 # Run the Flask app
 if __name__ == "__main__":
     # Disable Flask's automatic dotenv loading

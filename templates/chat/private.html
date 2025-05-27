@@ -8,23 +8,37 @@
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md">
             <!-- Chat header -->
             <div class="border-b border-gray-200 dark:border-gray-700 p-4">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <div class="h-10 w-10 rounded-full bg-indigo-600 flex items-center justify-center">
-                            <span class="text-white font-medium">{{ other_user.first_name[0] }}{{ other_user.last_name[0] }}</span>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="h-10 w-10 rounded-full bg-indigo-600 flex items-center justify-center">
+                                <span class="text-white font-medium">{{ other_user.first_name[0] }}{{ other_user.last_name[0] }}</span>
+                            </div>
+                        </div>
+                        <div class="ml-3">
+                            <h2 class="text-lg font-medium text-gray-900 dark:text-white">
+                                Dr. {{ other_user.first_name }} {{ other_user.last_name }}
+                            </h2>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">
+                                {% if other_user.role == 'doctor' %}
+                                Médecin
+                                {% else %}
+                                Patient
+                                {% endif %}
+                            </p>
                         </div>
                     </div>
-                    <div class="ml-3">
-                        <h2 class="text-lg font-medium text-gray-900 dark:text-white">
-                            Dr. {{ other_user.first_name }} {{ other_user.last_name }}
-                        </h2>
-                        <p class="text-sm text-gray-500 dark:text-gray-400">
-                            {% if other_user.role == 'doctor' %}
-                            Médecin
-                            {% else %}
-                            Patient
-                            {% endif %}
-                        </p>
+                    <div class="flex items-center">
+                        <button onclick="window.location.href='{{ url_for('video_call', user_id=other_user.id) }}'" class="bg-indigo-600 text-white p-2 rounded-full">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                        </button>
+                        <button onclick="window.location.href='{{ url_for('audio_call', user_id=other_user.id) }}'" class="ml-2 bg-indigo-600 text-white p-2 rounded-full">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                            </svg>
+                        </button>
                     </div>
                 </div>
             </div>
