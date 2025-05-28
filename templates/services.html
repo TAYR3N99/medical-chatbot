@@ -29,12 +29,21 @@
                 </div>
                 <p class="text-gray-600 dark:text-gray-400">Planifiez vos consultations médicales en quelques clics, sans attente téléphonique. Choisissez votre médecin, la date et l'heure qui vous conviennent le mieux.</p>
                 <div class="mt-4">
-                    <a href="#" class="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium inline-flex items-center">
-                        En savoir plus
+                    {% if session.get('user_id') %}
+                    <a href="{{ url_for('patient_new_appointment') }}" class="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium inline-flex items-center">
+                        Prendre rendez-vous
                         <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                         </svg>
                     </a>
+                    {% else %}
+                    <a href="{{ url_for('login') }}" class="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium inline-flex items-center">
+                        Se connecter pour prendre rendez-vous
+                        <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </a>
+                    {% endif %}
                 </div>
             </div>
 
