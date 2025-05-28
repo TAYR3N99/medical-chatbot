@@ -300,6 +300,15 @@ scheduler.add_job(
 # ✅ Route to render landing page
 @app.route("/")
 def index():
+    # Check if user is logged in
+    if 'user_id' in session:
+        # Redirect based on role
+        if session.get('role') == 'doctor':
+            return redirect(url_for('doctor_dashboard'))
+        elif session.get('role') == 'patient':
+            return redirect(url_for('patient_dashboard'))
+    
+    # If not logged in, show landing page
     return render_template('index.html')
 
 # Authentication routes
@@ -608,6 +617,29 @@ def doctor_dashboard():
                          pending_tasks=pending_tasks,
                          upcoming_appointments=upcoming_appointments)
 
+@app.route("/doctor/today-appointments")
+@login_required
+def today_appointments():
+    if session.get('role') != 'doctor':
+        flash("Accès non autorisé.", "error")
+        return redirect(url_for('index'))
+    
+    conn = get_db_connection()
+    today = datetime.now().strftime('%Y-%m-%d')
+    
+    # Get today's appointments with patient details
+    appointments = conn.execute('''
+        SELECT a.*, u.first_name, u.last_name, u.phone, u.id as patient_id
+        FROM appointments a 
+        JOIN users u ON a.patient_id = u.id 
+        WHERE a.doctor_id = ? AND a.date = ?
+        ORDER BY a.time
+    ''', (session['user_id'], today)).fetchall()
+    
+    conn.close()
+    
+    return render_template('doctor/today_appointments.html', appointments=appointments)
+
 @app.route("/chat")
 @login_required
 def chat_list():
@@ -863,6 +895,10 @@ def patient_new_appointment():
         JOIN doctor_profiles d ON u.id = d.user_id
         WHERE u.role = 'doctor'
     ''').fetchall()
+    
+    # Get the selected doctor_id from query parameters
+    selected_doctor_id = request.args.get('doctor_id')
+    
     if request.method == "POST":
         doctor_id = request.form.get("doctor_id")
         date = request.form.get("appointment_date")
@@ -878,7 +914,7 @@ def patient_new_appointment():
         flash("Votre demande de rendez-vous a été envoyée.", "success")
         return redirect(url_for('patient_dashboard'))
     conn.close()
-    return render_template('patient/new_appointment.html', doctors=doctors)
+    return render_template('patient/new_appointment.html', doctors=doctors, selected_doctor_id=selected_doctor_id)
 
 @app.route("/patient/prescriptions")
 @login_required
